@@ -5,11 +5,29 @@ body {
   color: #e5e7eb;
 }
 
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 18px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #1e293b;
+  transition: background 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #334155;
+}
+
 .container, .wrapper {
   max-width: 700px;
   margin: auto;
   padding: 2rem;
   text-align: center;
+  position: relative;
 }
 
 h1 {
@@ -33,6 +51,7 @@ p {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  border: none;
 }
 
 .btn.secondary {
@@ -53,6 +72,7 @@ input, select {
   border: 1px solid #1e293b;
   background: #020617;
   color: #e5e7eb;
+  font-size: 16px;
 }
 
 table {
@@ -61,10 +81,10 @@ table {
 }
 
 td {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: 1px solid #1e293b;
   text-align: center;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
 }
