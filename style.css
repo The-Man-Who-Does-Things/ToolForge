@@ -1,0 +1,70 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.container, .wrapper {
+  max-width: 700px;
+  margin: auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 0.5rem;
+}
+
+p {
+  color: #9ca3af;
+}
+
+.buttons {
+  margin-top: 2rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.8rem 1.2rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #22c55e, #06b6d4);
+  color: #020617;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn.secondary {
+  background: #1e293b;
+  color: #e5e7eb;
+}
+
+.controls {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #1e293b;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 1rem auto;
+}
+
+td {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #1e293b;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+}
