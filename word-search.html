@@ -12,6 +12,10 @@
 </head>
 
 <body>
+
+  <!-- כפתור Back -->
+  <a href="index.html" class="back-btn">← Back</a>
+
   <div class="wrapper">
     <h1>Word Search Generator</h1>
     <p>Generate multilingual word‑search puzzles directly in your browser.</p>
@@ -19,7 +23,7 @@
     <div class="controls">
       <div>
         <label>Word</label>
-        <input id="word-input" type="text" placeholder="Hello / Hola / שלום" />
+        <input id="word-input" type="text" placeholder="Type something..." />
       </div>
 
       <div>
@@ -86,15 +90,39 @@
 
     function placeWord(grid, word, lang) {
       const n = grid.length;
-      const clean = word.replace(/\s+/g, '');
+
+      // ניקוי רווחים
+      let clean = word.replace(/\s+/g, '');
+
       if (!clean) return;
 
-      const finalWord = lang.code === 'he'
+      // בדיקת תווים חוקיים
+      const isHebrew = lang.code === 'he';
+      const hebrewRegex = /^[אבגדהוזחטיכלמנסעפצקרשת]+$/;
+      const latinRegex = /^[A-Za-zÑñÁÉÍÓÚÜáéíóúü]+$/;
+
+      if (isHebrew && !hebrewRegex.test(clean)) {
+        alert('בעברית אפשר להשתמש רק באותיות א-ת ללא רווחים או סימנים.');
+        return;
+      }
+
+      if (!isHebrew && !latinRegex.test(clean)) {
+        alert('בשפות לטיניות אפשר להשתמש רק באותיות A-Z ללא רווחים או סימנים.');
+        return;
+      }
+
+      // הפיכת לטינית ל-CAPITAL
+      if (!isHebrew) {
+        clean = clean.toUpperCase();
+      }
+
+      // הפיכת עברית לכיוון הנכון
+      const finalWord = isHebrew
         ? clean.split('').reverse().join('')
         : clean;
 
       if (finalWord.length > n) {
-        alert('Word too long for grid size.');
+        alert('המילה ארוכה מדי לגודל הרשת.');
         return;
       }
 
