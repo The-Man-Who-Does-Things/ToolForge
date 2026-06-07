@@ -102,12 +102,12 @@
       const latinRegex = /^[A-Za-zÑñÁÉÍÓÚÜáéíóúü]+$/;
 
       if (isHebrew && !hebrewRegex.test(clean)) {
-        alert('בעברית אפשר להשתמש רק באותיות א-ת ללא רווחים או סימנים.');
+        alert('Hebrew letters only (א–ת), no spaces or symbols.');
         return;
       }
 
       if (!isHebrew && !latinRegex.test(clean)) {
-        alert('בשפות לטיניות אפשר להשתמש רק באותיות A-Z ללא רווחים או סימנים.');
+        alert('Only A–Z letters are allowed. No spaces or symbols.');
         return;
       }
 
@@ -156,14 +156,42 @@
       const lang = getLanguageConfig();
       const size = Math.max(8, Math.min(25, parseInt(sizeInput.value)));
       const word = wordInput.value.trim();
-
-      if (!word) return alert('Enter a word.');
-
+    
+      if (!word) {
+        alert('Please enter a word.');
+        return;
+      }
+    
+      // validate BEFORE creating grid
+      if (!validateWord(word, lang)) {
+        return;
+      }
+    
       const grid = createEmptyGrid(size);
       placeWord(grid, word, lang);
       fillRandomLetters(grid, lang.alphabet);
       renderGrid(grid, lang);
-    };
+      };
+
+    function validateWord(word, lang) {
+      const clean = word.replace(/\s+/g, '');
+      const isHebrew = lang.code === 'he';
+    
+      const hebrewRegex = /^[אבגדהוזחטיכלמנסעפצקרשת]+$/;
+      const latinRegex = /^[A-Za-zÑñÁÉÍÓÚÜáéíóúü]+$/;
+    
+      if (isHebrew && !hebrewRegex.test(clean)) {
+        alert('Hebrew letters only (א–ת), no spaces or symbols.');
+        return false;
+      }
+    
+      if (!isHebrew && !latinRegex.test(clean)) {
+        alert('Only A–Z letters are allowed. No spaces or symbols.');
+        return false;
+      }
+    
+      return true;
+    }
 
     document.getElementById('download-png-btn').onclick = async () => {
       const table = gridContainer.querySelector('table');
