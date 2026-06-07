@@ -1,5 +1,5 @@
 ToolForge is 
-A collection of browser‑based creative tools and generators — fast, simple, and fully client‑side.
+a collection of browser‑based creative tools and generators — fast, simple, and fully client‑side.
 
 🌐 Live Site:
 The-Man-Who-Does-Things.github.io/ToolForge
