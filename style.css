@@ -9,17 +9,22 @@ body {
   position: absolute;
   top: 20px;
   left: 20px;
-  color: #e5e7eb;
-  text-decoration: none;
-  font-size: 18px;
-  padding: 6px 12px;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
   background: #1e293b;
-  transition: background 0.2s ease;
+  color: #e5e7eb;
+  font-size: 20px;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .back-btn:hover {
   background: #334155;
+  transform: scale(1.05);
 }
 
 .container, .wrapper {
