@@ -8,6 +8,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.3.2/build/index.min.js"></script>
 </head>
 
 <body>
@@ -51,14 +52,29 @@
 
   <div class="actions">
     <button id="generate-btn" class="btn">Generate</button>
-    <button id="download-png-btn" class="btn secondary">Download PNG</button>
-    <button id="download-pdf-btn" class="btn secondary">Download PDF</button>
+  </div>
+
+  <div class="download-row">
+    <select id="image-format">
+      <option value="">Download as image</option>
+      <option value="png">PNG</option>
+      <option value="jpg">JPG</option>
+      <option value="jpeg">JPEG</option>
+      <option value="webp">WEBP</option>
+    </select>
+
+    <select id="doc-format">
+      <option value="">Download as document</option>
+      <option value="pdf">PDF</option>
+      <option value="docx">DOCX</option>
+    </select>
   </div>
 
   <div id="grid-container"></div>
 </div>
 
 <script>
+/* --- languages --- */
 const LANGUAGES = [
   { code: 'en', label: 'English', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
   { code: 'es', label: 'Spanish', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ' },
@@ -82,6 +98,7 @@ LANGUAGES.forEach(lang => {
   languageSelect.appendChild(opt);
 });
 
+/* --- helpers --- */
 function getLanguageConfig() {
   return LANGUAGES.find(l => l.code === languageSelect.value);
 }
@@ -108,19 +125,13 @@ function validateWord(word, lang) {
   const hebrewRegex = /^[אבגדהוזחטיכלמנסעפצקרשת]+$/;
   const latinRegex = /^[A-Za-zÑñÁÉÍÓÚÜáéíóúü]+$/;
 
-  if (isHebrew && !hebrewRegex.test(clean)) {
-    alert('Hebrew letters only (א–ת), no spaces or symbols.');
-    return false;
-  }
-
-  if (!isHebrew && !latinRegex.test(clean)) {
-    alert('Only A–Z letters are allowed. No spaces or symbols.');
-    return false;
-  }
+  if (isHebrew && !hebrewRegex.test(clean)) return false;
+  if (!isHebrew && !latinRegex.test(clean)) return false;
 
   return true;
 }
 
+/* --- placement --- */
 function tryPlace(grid, word, lang, direction) {
   const n = grid.length;
   const isHebrew = lang.code === 'he';
@@ -142,7 +153,6 @@ function tryPlace(grid, word, lang, direction) {
 
   const [dr, dc] = dirs[direction];
 
-  // create shuffled list of all cells
   const cells = [];
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
@@ -150,13 +160,11 @@ function tryPlace(grid, word, lang, direction) {
     }
   }
 
-  // shuffle
   for (let i = cells.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [cells[i], cells[j]] = [cells[j], cells[i]];
   }
 
-  // try each cell in random order
   for (const [r, c] of cells) {
     let ok = true;
 
@@ -195,22 +203,17 @@ function placeWords(grid, words, lang, directions) {
     let placed = false;
 
     for (let attempt = 0; attempt < 200 && !placed; attempt++) {
-
-      // pick a random direction for THIS word
       const dir = directions[Math.floor(Math.random() * directions.length)];
-
       placed = tryPlace(grid, word, lang, dir);
     }
 
-    if (!placed) {
-      alert('Could not place word: ' + word);
-      return false;
-    }
+    if (!placed) return false;
   }
 
   return true;
 }
 
+/* --- fill --- */
 function fillRandomLetters(grid, alphabet) {
   const chars = alphabet.split('');
   for (let r = 0; r < grid.length; r++) {
@@ -222,6 +225,7 @@ function fillRandomLetters(grid, alphabet) {
   }
 }
 
+/* --- render --- */
 function renderGrid(grid, lang) {
   gridContainer.innerHTML = '';
   const table = document.createElement('table');
@@ -240,55 +244,127 @@ function renderGrid(grid, lang) {
   gridContainer.appendChild(table);
 }
 
+/* --- generate --- */
 document.getElementById('generate-btn').onclick = () => {
   const lang = getLanguageConfig();
   const size = Math.max(8, Math.min(25, parseInt(sizeInput.value)));
   const words = getWords();
   const directions = getDirections();
 
-  if (words.length === 0) {
-    alert('Please enter at least one word.');
-    return;
-  }
-
-  if (directions.length === 0) {
-    alert('Please select at least one direction.');
-    return;
-  }
+  if (words.length === 0) return alert('Please enter at least one word.');
+  if (directions.length === 0) return alert('Please select at least one direction.');
 
   const grid = createEmptyGrid(size);
 
-  if (!placeWords(grid, words, lang, directions)) return;
+  if (!placeWords(grid, words, lang, directions)) {
+    alert('Could not place all words.');
+    return;
+  }
 
   fillRandomLetters(grid, lang.alphabet);
   renderGrid(grid, lang);
 };
 
-document.getElementById('download-png-btn').onclick = async () => {
-  const table = gridContainer.querySelector('table');
-  if (!table) return alert('Generate a puzzle first.');
+/* --- create clean black/white table for export --- */
+function createCleanTable() {
+  const table = document.createElement('table');
+  table.style.borderCollapse = 'collapse';
+  table.style.background = 'white';
+
+  const rows = gridContainer.querySelectorAll('tr');
+
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+
+    row.querySelectorAll('td').forEach(cell => {
+      const td = document.createElement('td');
+      td.textContent = cell.textContent;
+      td.style.width = '40px';
+      td.style.height = '40px';
+      td.style.border = '2px solid black';
+      td.style.textAlign = 'center';
+      td.style.fontSize = '26px';
+      td.style.fontWeight = 'bold';
+      td.style.color = 'black';
+      td.style.background = 'white';
+      tr.appendChild(td);
+    });
+
+    table.appendChild(tr);
+  });
+
+  return table;
+}
+
+/* --- image export --- */
+document.getElementById('image-format').onchange = async (e) => {
+  const format = e.target.value;
+  if (!format) return;
+
+  const table = createCleanTable();
+  document.body.appendChild(table);
+  table.style.position = 'fixed';
+  table.style.top = '-9999px';
 
   const canvas = await html2canvas(table, { backgroundColor: '#fff', scale: 3 });
   const link = document.createElement('a');
-  link.download = 'word-search.png';
-  link.href = canvas.toDataURL('image/png');
+  link.download = 'word-search.' + format;
+  link.href = canvas.toDataURL('image/' + format);
   link.click();
+
+  table.remove();
+  e.target.value = '';
 };
 
-document.getElementById('download-pdf-btn').onclick = async () => {
-  const table = gridContainer.querySelector('table');
-  if (!table) return alert('Generate a puzzle first.');
+/* --- document export --- */
+document.getElementById('doc-format').onchange = async (e) => {
+  const format = e.target.value;
+  if (!format) return;
 
-  const canvas = await html2canvas(table, { backgroundColor: '#fff', scale: 3 });
-  const img = canvas.toDataURL('image/png');
+  const table = createCleanTable();
+  document.body.appendChild(table);
+  table.style.position = 'fixed';
+  table.style.top = '-9999px';
 
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-  const width = pdf.internal.pageSize.getWidth() - 20;
-  const height = canvas.height * (width / canvas.width);
+  if (format === 'pdf') {
+    const canvas = await html2canvas(table, { backgroundColor: '#fff', scale: 3 });
+    const img = canvas.toDataURL('image/png');
 
-  pdf.addImage(img, 'PNG', 10, 10, width, height);
-  pdf.save('word-search.pdf');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    const width = pdf.internal.pageSize.getWidth() - 20;
+    const height = canvas.height * (width / canvas.width);
+
+    pdf.addImage(img, 'PNG', 10, 10, width, height);
+    pdf.save('word-search.pdf');
+  }
+
+  if (format === 'docx') {
+    const { Document, Packer, Paragraph, TextRun } = window.docx;
+
+    const rows = Array.from(table.querySelectorAll('tr')).map(tr =>
+      new Paragraph({
+        children: [
+          new TextRun(
+            Array.from(tr.querySelectorAll('td'))
+              .map(td => td.textContent)
+              .join(' ')
+          )
+        ]
+      })
+    );
+
+    const doc = new Document({ sections: [{ children: rows }] });
+
+    const blob = await Packer.toBlob(doc);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'word-search.docx';
+    link.click();
+  }
+
+  table.remove();
+  e.target.value = '';
 };
 </script>
 
