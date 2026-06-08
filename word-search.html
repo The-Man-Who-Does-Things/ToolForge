@@ -8,7 +8,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.3.2/build/index.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.3.2/docx.min.js"></script>
 </head>
 
 <body>
@@ -60,6 +60,7 @@
 </div>
 
 <script>
+/* LANGUAGES */
 const LANGUAGES = [
   { code: 'en', label: 'English | English', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
   { code: 'es', label: 'Spanish | Español', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ' },
@@ -83,6 +84,7 @@ LANGUAGES.forEach(lang => {
   languageSelect.appendChild(opt);
 });
 
+/* HELPERS */
 function getLanguageConfig() {
   return LANGUAGES.find(l => l.code === languageSelect.value);
 }
@@ -115,6 +117,7 @@ function validateWord(word, lang) {
   return true;
 }
 
+/* WORD PLACEMENT */
 function tryPlace(grid, word, lang, direction) {
   const n = grid.length;
   const isHebrew = lang.code === 'he';
@@ -202,6 +205,7 @@ function placeWords(grid, words, lang, directions) {
   return true;
 }
 
+/* FILL RANDOM LETTERS */
 function fillRandomLetters(grid, alphabet) {
   const chars = alphabet.split('');
   for (let r = 0; r < grid.length; r++) {
@@ -213,6 +217,7 @@ function fillRandomLetters(grid, alphabet) {
   }
 }
 
+/* RENDER GRID */
 function renderGrid(grid, lang) {
   gridContainer.innerHTML = '';
   const table = document.createElement('table');
@@ -231,6 +236,7 @@ function renderGrid(grid, lang) {
   gridContainer.appendChild(table);
 }
 
+/* GENERATE */
 document.getElementById('generate-btn').onclick = () => {
   const lang = getLanguageConfig();
   const size = Math.max(8, Math.min(25, parseInt(sizeInput.value)));
@@ -255,6 +261,7 @@ document.getElementById('generate-btn').onclick = () => {
   renderGrid(grid, lang);
 };
 
+/* CLEAN TABLE FOR EXPORT */
 function createCleanTable() {
   const originalTable = gridContainer.querySelector('table');
   if (!originalTable) return null;
@@ -288,6 +295,7 @@ function createCleanTable() {
   return table;
 }
 
+/* DOWNLOAD IMAGE */
 document.getElementById('download-image-btn').onclick = async () => {
   const table = createCleanTable();
   if (!table) {
@@ -295,12 +303,11 @@ document.getElementById('download-image-btn').onclick = async () => {
     return;
   }
 
-  const formatInput = prompt('Choose image format: png, jpg, jpeg, webp');
-  if (!formatInput) return;
+  const format = prompt('Choose image format: png, jpg, jpeg, webp');
+  if (!format) return;
 
-  const format = formatInput.trim().toLowerCase();
   const allowed = ['png', 'jpg', 'jpeg', 'webp'];
-  if (!allowed.includes(format)) {
+  if (!allowed.includes(format.toLowerCase())) {
     alert('Unsupported format.');
     return;
   }
@@ -319,6 +326,7 @@ document.getElementById('download-image-btn').onclick = async () => {
   table.remove();
 };
 
+/* DOWNLOAD DOCUMENT */
 document.getElementById('download-doc-btn').onclick = async () => {
   const table = createCleanTable();
   if (!table) {
@@ -326,20 +334,14 @@ document.getElementById('download-doc-btn').onclick = async () => {
     return;
   }
 
-  const formatInput = prompt('Choose document format: pdf, docx');
-  if (!formatInput) return;
-
-  const format = formatInput.trim().toLowerCase();
-  if (format !== 'pdf' && format !== 'docx') {
-    alert('Unsupported format.');
-    return;
-  }
-
-  document.body.appendChild(table);
-  table.style.position = 'fixed';
-  table.style.top = '-9999px';
+  const format = prompt('Choose document format: pdf, docx');
+  if (!format) return;
 
   if (format === 'pdf') {
+    document.body.appendChild(table);
+    table.style.position = 'fixed';
+    table.style.top = '-9999px';
+
     const canvas = await html2canvas(table, { backgroundColor: '#fff', scale: 3 });
     const img = canvas.toDataURL('image/png');
 
@@ -350,12 +352,13 @@ document.getElementById('download-doc-btn').onclick = async () => {
 
     pdf.addImage(img, 'PNG', 10, 10, width, height);
     pdf.save('word-search.pdf');
+
+    table.remove();
   }
 
   if (format === 'docx') {
     if (!window.docx) {
-      alert('DOCX export is not available in this browser.');
-      table.remove();
+      alert('DOCX export is not supported on this device.');
       return;
     }
 
@@ -381,8 +384,6 @@ document.getElementById('download-doc-btn').onclick = async () => {
     link.download = 'word-search.docx';
     link.click();
   }
-
-  table.remove();
 };
 </script>
 
