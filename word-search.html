@@ -52,37 +52,22 @@
 
   <div class="actions">
     <button id="generate-btn" class="btn">Generate</button>
-  </div>
-
-  <div class="download-row">
-    <select id="image-format">
-      <option value="">Download as image</option>
-      <option value="png">PNG</option>
-      <option value="jpg">JPG</option>
-      <option value="jpeg">JPEG</option>
-      <option value="webp">WEBP</option>
-    </select>
-
-    <select id="doc-format">
-      <option value="">Download as document</option>
-      <option value="pdf">PDF</option>
-      <option value="docx">DOCX</option>
-    </select>
+    <button id="download-image-btn" class="btn secondary">Download as image</button>
+    <button id="download-doc-btn" class="btn secondary">Download as document</button>
   </div>
 
   <div id="grid-container"></div>
 </div>
 
 <script>
-/* --- languages --- */
 const LANGUAGES = [
-  { code: 'en', label: 'English', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
-  { code: 'es', label: 'Spanish', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ' },
-  { code: 'fr', label: 'French', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
-  { code: 'de', label: 'German', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
-  { code: 'pt', label: 'Portuguese', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
-  { code: 'it', label: 'Italian', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
-  { code: 'he', label: 'Hebrew', dir: 'rtl', alphabet: 'אבגדהוזחטיכלמנסעפצקרשת' }
+  { code: 'en', label: 'English | English', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
+  { code: 'es', label: 'Spanish | Español', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ' },
+  { code: 'fr', label: 'French | Français', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
+  { code: 'de', label: 'German | Deutsch', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
+  { code: 'pt', label: 'Portuguese | Português', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
+  { code: 'it', label: 'Italian | Italiano', dir: 'ltr', alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
+  { code: 'he', label: 'Hebrew | עברית', dir: 'rtl', alphabet: 'אבגדהוזחטיכלמנסעפצקרשת' }
 ];
 
 const languageSelect = document.getElementById('language-select');
@@ -98,7 +83,6 @@ LANGUAGES.forEach(lang => {
   languageSelect.appendChild(opt);
 });
 
-/* --- helpers --- */
 function getLanguageConfig() {
   return LANGUAGES.find(l => l.code === languageSelect.value);
 }
@@ -131,7 +115,6 @@ function validateWord(word, lang) {
   return true;
 }
 
-/* --- placement --- */
 function tryPlace(grid, word, lang, direction) {
   const n = grid.length;
   const isHebrew = lang.code === 'he';
@@ -198,7 +181,10 @@ function tryPlace(grid, word, lang, direction) {
 
 function placeWords(grid, words, lang, directions) {
   for (const word of words) {
-    if (!validateWord(word, lang)) return false;
+    if (!validateWord(word, lang)) {
+      alert('Invalid word: ' + word);
+      return false;
+    }
 
     let placed = false;
 
@@ -207,13 +193,15 @@ function placeWords(grid, words, lang, directions) {
       placed = tryPlace(grid, word, lang, dir);
     }
 
-    if (!placed) return false;
+    if (!placed) {
+      alert('Could not place word: ' + word);
+      return false;
+    }
   }
 
   return true;
 }
 
-/* --- fill --- */
 function fillRandomLetters(grid, alphabet) {
   const chars = alphabet.split('');
   for (let r = 0; r < grid.length; r++) {
@@ -225,7 +213,6 @@ function fillRandomLetters(grid, alphabet) {
   }
 }
 
-/* --- render --- */
 function renderGrid(grid, lang) {
   gridContainer.innerHTML = '';
   const table = document.createElement('table');
@@ -244,34 +231,39 @@ function renderGrid(grid, lang) {
   gridContainer.appendChild(table);
 }
 
-/* --- generate --- */
 document.getElementById('generate-btn').onclick = () => {
   const lang = getLanguageConfig();
   const size = Math.max(8, Math.min(25, parseInt(sizeInput.value)));
   const words = getWords();
   const directions = getDirections();
 
-  if (words.length === 0) return alert('Please enter at least one word.');
-  if (directions.length === 0) return alert('Please select at least one direction.');
+  if (words.length === 0) {
+    alert('Please enter at least one word.');
+    return;
+  }
+
+  if (directions.length === 0) {
+    alert('Please select at least one direction.');
+    return;
+  }
 
   const grid = createEmptyGrid(size);
 
-  if (!placeWords(grid, words, lang, directions)) {
-    alert('Could not place all words.');
-    return;
-  }
+  if (!placeWords(grid, words, lang, directions)) return;
 
   fillRandomLetters(grid, lang.alphabet);
   renderGrid(grid, lang);
 };
 
-/* --- create clean black/white table for export --- */
 function createCleanTable() {
+  const originalTable = gridContainer.querySelector('table');
+  if (!originalTable) return null;
+
   const table = document.createElement('table');
   table.style.borderCollapse = 'collapse';
   table.style.background = 'white';
 
-  const rows = gridContainer.querySelectorAll('tr');
+  const rows = originalTable.querySelectorAll('tr');
 
   rows.forEach(row => {
     const tr = document.createElement('tr');
@@ -296,32 +288,53 @@ function createCleanTable() {
   return table;
 }
 
-/* --- image export --- */
-document.getElementById('image-format').onchange = async (e) => {
-  const format = e.target.value;
-  if (!format) return;
-
+document.getElementById('download-image-btn').onclick = async () => {
   const table = createCleanTable();
+  if (!table) {
+    alert('Generate a puzzle first.');
+    return;
+  }
+
+  const formatInput = prompt('Choose image format: png, jpg, jpeg, webp');
+  if (!formatInput) return;
+
+  const format = formatInput.trim().toLowerCase();
+  const allowed = ['png', 'jpg', 'jpeg', 'webp'];
+  if (!allowed.includes(format)) {
+    alert('Unsupported format.');
+    return;
+  }
+
   document.body.appendChild(table);
   table.style.position = 'fixed';
   table.style.top = '-9999px';
 
   const canvas = await html2canvas(table, { backgroundColor: '#fff', scale: 3 });
+  const mime = format === 'jpg' || format === 'jpeg' ? 'image/jpeg' : 'image/' + format;
   const link = document.createElement('a');
   link.download = 'word-search.' + format;
-  link.href = canvas.toDataURL('image/' + format);
+  link.href = canvas.toDataURL(mime);
   link.click();
 
   table.remove();
-  e.target.value = '';
 };
 
-/* --- document export --- */
-document.getElementById('doc-format').onchange = async (e) => {
-  const format = e.target.value;
-  if (!format) return;
-
+document.getElementById('download-doc-btn').onclick = async () => {
   const table = createCleanTable();
+  if (!table) {
+    alert('Generate a puzzle first.');
+    return;
+  }
+
+  const formatInput = prompt('Choose document format: pdf, docx');
+  if (!formatInput) return;
+
+  const format = formatInput.trim().toLowerCase();
+  if (format !== 'pdf' && format !== 'docx') {
+    alert('Unsupported format.');
+    return;
+  }
+
   document.body.appendChild(table);
   table.style.position = 'fixed';
   table.style.top = '-9999px';
@@ -340,6 +353,12 @@ document.getElementById('doc-format').onchange = async (e) => {
   }
 
   if (format === 'docx') {
+    if (!window.docx) {
+      alert('DOCX export is not available in this browser.');
+      table.remove();
+      return;
+    }
+
     const { Document, Packer, Paragraph, TextRun } = window.docx;
 
     const rows = Array.from(table.querySelectorAll('tr')).map(tr =>
@@ -364,7 +383,6 @@ document.getElementById('doc-format').onchange = async (e) => {
   }
 
   table.remove();
-  e.target.value = '';
 };
 </script>
 
