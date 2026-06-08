@@ -75,7 +75,7 @@ p {
   margin-top: 1rem;
 }
 
-input, select {
+input, select, textarea {
   width: 100%;
   padding: 0.6rem;
   border-radius: 0.5rem;
@@ -83,6 +83,14 @@ input, select {
   background: #020617;
   color: #e5e7eb;
   font-size: 16px;
+}
+
+textarea {
+  min-height: 90px;
+}
+
+select[multiple] {
+  height: 140px;
 }
 
 table {
