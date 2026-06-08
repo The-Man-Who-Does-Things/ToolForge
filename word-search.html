@@ -142,34 +142,46 @@ function tryPlace(grid, word, lang, direction) {
 
   const [dr, dc] = dirs[direction];
 
+  // create shuffled list of all cells
+  const cells = [];
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
+      cells.push([r, c]);
+    }
+  }
 
-      let ok = true;
+  // shuffle
+  for (let i = cells.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cells[i], cells[j]] = [cells[j], cells[i]];
+  }
 
+  // try each cell in random order
+  for (const [r, c] of cells) {
+    let ok = true;
+
+    for (let i = 0; i < len; i++) {
+      const rr = r + dr * i;
+      const cc = c + dc * i;
+
+      if (rr < 0 || rr >= n || cc < 0 || cc >= n) {
+        ok = false;
+        break;
+      }
+
+      if (grid[rr][cc] && grid[rr][cc] !== clean[i]) {
+        ok = false;
+        break;
+      }
+    }
+
+    if (ok) {
       for (let i = 0; i < len; i++) {
         const rr = r + dr * i;
         const cc = c + dc * i;
-
-        if (rr < 0 || rr >= n || cc < 0 || cc >= n) {
-          ok = false;
-          break;
-        }
-
-        if (grid[rr][cc] && grid[rr][cc] !== clean[i]) {
-          ok = false;
-          break;
-        }
+        grid[rr][cc] = clean[i];
       }
-
-      if (ok) {
-        for (let i = 0; i < len; i++) {
-          const rr = r + dr * i;
-          const cc = c + dc * i;
-          grid[rr][cc] = clean[i];
-        }
-        return true;
-      }
+      return true;
     }
   }
 
