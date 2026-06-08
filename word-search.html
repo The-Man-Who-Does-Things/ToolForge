@@ -195,7 +195,10 @@ function placeWords(grid, words, lang, directions) {
     let placed = false;
 
     for (let attempt = 0; attempt < 200 && !placed; attempt++) {
+
+      // pick a random direction for THIS word
       const dir = directions[Math.floor(Math.random() * directions.length)];
+
       placed = tryPlace(grid, word, lang, dir);
     }
 
