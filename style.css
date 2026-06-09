@@ -134,3 +134,20 @@ td {
   cursor: pointer;
   user-select: none;
 }
+
+.help-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #e5e7eb;
+  font-size: 12px;
+  cursor: pointer;
+}
+.help-circle:hover {
+  background: #334155;
+}
