@@ -1,30 +1,75 @@
-ToolForge is 
-a collection of browser‑based creative tools and generators — fast, simple, and fully client‑side.
+# ToolForge
 
-🌐 Live Site:
-The-Man-Who-Does-Things.github.io/ToolForge
+ToolForge is a collection of fast, lightweight, fully client‑side creative tools — no backend, no servers, no data collection.  
+Everything runs directly in your browser.
 
-🧰 Tools:
-Word Search Generator  
-Create multilingual word‑search puzzles (including Hebrew), exportable as PNG or PDF.
+🌐 **Live Site**  
+https://the-man-who-does-things.github.io/ToolForge
 
-🚀 Features:
-100% client‑side — no backend, no servers
+---
 
-Works offline once loaded
+## 🧰 Tools
 
-Supports multiple languages (Latin + Hebrew)
+### **Word Search Generator**
+Create multilingual word‑search puzzles with full control over:
 
-Clean, minimal UI
+- Grid size  
+- Word list  
+- Language (including full Hebrew support)  
+- Placement directions (checkbox UI)  
+- Export format (PNG / JPG / JPEG / WEBP / PDF / DOCX)
 
-Export to image/PDF directly from the browser
+The generator is fully client‑side and works offline once loaded.
 
-📦 Tech Stack:
-HTML, CSS, JavaScript
+---
 
-html2canvas (image export)
+## 🚀 Features
 
-jsPDF (PDF export)
+### **✔ Multilingual support**
+- English  
+- Hebrew (RTL, correct letter placement)  
+- Spanish  
+- French  
+- German  
+- Portuguese  
+- Italian  
 
-📄 License:
+### **✔ Modern UI**
+- Clean dark theme  
+- Checkbox‑based direction selector  
+- Centered responsive layout  
+- Mobile‑friendly controls  
+- Generate + Download buttons in one action row
+
+### **✔ Export options**
+- **Images:** PNG, JPG, JPEG, WEBP  
+- **Documents:** PDF, DOCX  
+- Clean black‑and‑white export grid (thick borders, large letters)
+
+### **✔ 100% client‑side**
+- No backend  
+- No network requests  
+- No data stored or sent  
+- Works offline after first load
+
+### **✔ Technical highlights**
+- Dynamic grid generation  
+- Word placement with collision detection  
+- Hebrew RTL handling  
+- Auto‑fill random letters  
+- Clean export‑only rendering layer
+
+---
+
+## 📦 Tech Stack
+
+- **HTML, CSS, JavaScript**
+- **html2canvas** — image rendering  
+- **jsPDF** — PDF generation  
+- **docx.js (7.7.0)** — DOCX generation  
+- Fully static GitHub Pages hosting
+
+---
+
+## 📄 License
 MIT License
