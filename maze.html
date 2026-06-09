@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maze Generator – ToolForge</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a href="index.html" class="back-btn">←</a>
+
+  <div class="wrapper">
+    <h1>Maze Generator</h1>
+    <p>Create a clean, printable maze with custom colors and wall width.</p>
+
+    <div class="controls">
+
+      <!-- Colors -->
+      <div>
+        <label>
+          Outline Color
+          <span class="help-circle" id="outline-help">?</span>
+        </label>
+        <input type="text" id="outline-color-input" placeholder="#FFFFFF" value="#FFFFFF" />
+      </div>
+
+      <div>
+        <label>
+          Wall Color
+          <span class="help-circle" id="wall-help">?</span>
+        </label>
+        <input type="text" id="wall-color-input" placeholder="#000000" value="#000000" />
+      </div>
+
+      <!-- Size -->
+      <div>
+        <label>
+          Height (px)
+          <span class="help-circle" data-type="height">?</span>
+        </label>
+        <input type="number" id="maze-height-input" value="600" min="100" />
+      </div>
+
+      <div>
+        <label>
+          Width (px)
+          <span class="help-circle" data-type="width">?</span>
+        </label>
+        <input type="number" id="maze-width-input" value="600" min="100" />
+      </div>
+
+      <!-- Wall width -->
+      <div>
+        <label>
+          Wall Width (px)
+          <span class="help-circle" data-type="wall-width">?</span>
+        </label>
+        <input type="number" id="wall-width-input" value="6" min="1" />
+      </div>
+
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="generate-btn">Generate</button>
+      <button class="btn secondary" id="download-img-btn">Download as image</button>
+      <button class="btn secondary" id="download-doc-btn">Download as document</button>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <canvas id="maze-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- ספריות כמו ב‑word-search -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/docx@7.7.0/build/index.js"></script>
+
+  <script>
+    // ===== Tooltips לצבעים =====
+    const outlineHelp = document.getElementById('outline-help');
+    const wallHelp = document.getElementById('wall-help');
+
+    const colorTooltipText =
+      'You need a hex color to use this feature.\n' +
+      'Example site for choosing color: https://colorhunt.co/\n' +
+      'Click on this to go to colorhunt';
+
+    outlineHelp.title = colorTooltipText;
+    wallHelp.title = colorTooltipText;
+
+    outlineHelp.addEventListener('click', () => {
+      window.open('https://colorhunt.co/', '_blank');
+    });
+    wallHelp.addEventListener('click', () => {
+      window.open('https://colorhunt.co/', '_blank');
+    });
+
+    // ===== Tooltips ל‑height/width/wall width =====
+    document.querySelectorAll('.help-circle[data-type]').forEach(el => {
+      const type = el.getAttribute('data-type');
+      if (type === 'height') {
+        el.title = 'Enter height in pixels.';
+      } else if (type === 'width') {
+        el.title = 'Enter width in pixels.';
+      } else if (type === 'wall-width') {
+        el.title = 'Enter wall width in pixels.';
+      }
+    });
+
+    // ===== Maze generation (cell maze עם קווים עבים) =====
+    const canvas = document.getElementById('maze-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function generateMazeGrid(rows, cols) {
+      // אלגוריתם DFS קלאסי
+      const grid = [];
+      for (let r = 0; r < rows; r++) {
+        const row = [];
+        for (let c = 0; c < cols; c++) {
+          row.push({
+            r,
+            c,
+            visited: false,
+            walls: { top: true, right: true, bottom: true, left: true }
+          });
+        }
+        grid.push(row);
+      }
+
+      function neighbors(cell) {
+        const list = [];
+        const { r, c } = cell;
+        if (r > 0) list.push(grid[r - 1][c]);
+        if (r < rows - 1) list.push(grid[r + 1][c]);
+        if (c > 0) list.push(grid[r][c - 1]);
+        if (c < cols - 1) list.push(grid[r][c + 1]);
+        return list.filter(n => !n.visited);
+      }
+
+      const stack = [];
+      const start = grid[0][0];
+      start.visited = true;
+      stack.push(start);
+
+      while (stack.length) {
+        const current = stack[stack.length - 1];
+        const unvisited = neighbors(current);
+        if (!unvisited.length) {
+          stack.pop();
+          continue;
+        }
+        const next = unvisited[Math.floor(Math.random() * unvisited.length)];
+        // הסרת קירות
+        if (next.r === current.r - 1 && next.c === current.c) {
+          current.walls.top = false;
+          next.walls.bottom = false;
+        } else if (next.r === current.r + 1 && next.c === current.c) {
+          current.walls.bottom = false;
+          next.walls.top = false;
+        } else if (next.c === current.c - 1 && next.r === current.r) {
+          current.walls.left = false;
+          next.walls.right = false;
+        } else if (next.c === current.c + 1 && next.r === current.r) {
+          current.walls.right = false;
+          next.walls.left = false;
+        }
+        next.visited = true;
+        stack.push(next);
+      }
+
+      return grid;
+    }
+
+    function drawMaze({ width, height, wallWidth, outlineColor, wallColor }) {
+      // נגדיר מספר תאים לפי גודל ה‑canvas
+      const approxCellSize = 30; // פיקסלים לתא (אפשר לשנות)
+      const cols = Math.max(5, Math.floor(width / approxCellSize));
+      const rows = Math.max(5, Math.floor(height / approxCellSize));
+      const cellW = (width - wallWidth) / cols;
+      const cellH = (height - wallWidth) / rows;
+
+      const grid = generateMazeGrid(rows, cols);
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.lineCap = 'square';
+      ctx.lineJoin = 'miter';
+
+      // outline
+      ctx.strokeStyle = outlineColor;
+      ctx.lineWidth = wallWidth;
+      ctx.strokeRect(
+        wallWidth / 2,
+        wallWidth / 2,
+        width - wallWidth,
+        height - wallWidth
+      );
+
+      // walls
+      ctx.strokeStyle = wallColor;
+      ctx.lineWidth = wallWidth;
+
+      grid.forEach(row => {
+        row.forEach(cell => {
+          const x = wallWidth / 2 + cell.c * cellW;
+          const y = wallWidth / 2 + cell.r * cellH;
+
+          if (cell.walls.top) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + cellW, y);
+            ctx.stroke();
+          }
+          if (cell.walls.right) {
+            ctx.beginPath();
+            ctx.moveTo(x + cellW, y);
+            ctx.lineTo(x + cellW, y + cellH);
+            ctx.stroke();
+          }
+          if (cell.walls.bottom) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + cellH);
+            ctx.lineTo(x + cellW, y + cellH);
+            ctx.stroke();
+          }
+          if (cell.walls.left) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + cellH);
+            ctx.stroke();
+          }
+        });
+      });
+    }
+
+    function getColorOrDefault(inputEl, fallback) {
+      const v = inputEl.value.trim();
+      if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) return v;
+      return fallback;
+    }
+
+    // ===== Generate =====
+    document.getElementById('generate-btn').onclick = () => {
+      const width = parseInt(document.getElementById('maze-width-input').value, 10) || 600;
+      const height = parseInt(document.getElementById('maze-height-input').value, 10) || 600;
+      const wallWidth = parseInt(document.getElementById('wall-width-input').value, 10) || 6;
+
+      const outlineColor = getColorOrDefault(
+        document.getElementById('outline-color-input'),
+        '#FFFFFF'
+      );
+      const wallColor = getColorOrDefault(
+        document.getElementById('wall-color-input'),
+        '#000000'
+      );
+
+      drawMaze({ width, height, wallWidth, outlineColor, wallColor });
+    };
+
+    // ===== Download as image =====
+    document.getElementById('download-img-btn').onclick = () => {
+      const link = document.createElement('a');
+      link.download = 'maze.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+
+    // ===== Download as document (PDF / DOCX – כמו בתפזורת) =====
+    document.getElementById('download-doc-btn').onclick = async () => {
+      const choice = prompt('Type "pdf" for PDF or "docx" for DOCX:', 'pdf');
+      if (!choice) return;
+
+      const dataUrl = canvas.toDataURL('image/png');
+
+      if (choice.toLowerCase() === 'pdf') {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'pt',
+          format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(dataUrl, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('maze.pdf');
+      } else if (choice.toLowerCase() === 'docx' && window.docx) {
+        const { Document, Packer, Media } = window.docx;
+        const doc = new Document();
+        const image = Media.addImage(doc, dataURLToUint8Array(dataUrl), canvas.width, canvas.height);
+        doc.addSection({ children: [image] });
+        const blob = await Packer.toBlob(doc);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'maze.docx';
+        a.click();
+      } else {
+        alert('DOCX export is not available in this browser.');
+      }
+    };
+
+    function dataURLToUint8Array(dataURL) {
+      const base64 = dataURL.split(',')[1];
+      const binary = atob(base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+
+    // יצירה ראשונית
+    drawMaze({
+      width: 600,
+      height: 600,
+      wallWidth: 6,
+      outlineColor: '#FFFFFF',
+      wallColor: '#000000'
+    });
+  </script>
+</body>
+</html>
