@@ -262,10 +262,28 @@
     };
 
     // ===== Download as image =====
-    document.getElementById('download-img-btn').onclick = () => {
+    document.getElementById('download-img-btn').onclick = async () => {
+      const format = prompt('Choose image format: png, jpg, jpeg, webp');
+      if (!format) return;
+    
+      const allowed = ['png', 'jpg', 'jpeg', 'webp'];
+      if (!allowed.includes(format.toLowerCase())) {
+        alert('Unsupported format.');
+        return;
+      }
+    
+      // נשתמש ב‑canvas הקיים של המבוך
+      const mazeCanvas = document.getElementById('maze-canvas');
+    
+      // html2canvas לא נחוץ כאן — כבר יש לנו canvas אמיתי
+      const mime =
+        format === 'jpg' || format === 'jpeg'
+          ? 'image/jpeg'
+          : 'image/' + format.toLowerCase();
+    
       const link = document.createElement('a');
-      link.download = 'maze.png';
-      link.href = canvas.toDataURL('image/png');
+      link.download = 'maze.' + format.toLowerCase();
+      link.href = mazeCanvas.toDataURL(mime);
       link.click();
     };
 
