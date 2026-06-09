@@ -96,3 +96,41 @@ td {
   font-size: 20px;
   font-weight: bold;
 }
+
+.direction-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #020617;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+}
+
+.direction-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #0f172a;
+  border-radius: 6px;
+  border: 1px solid #1e293b;
+  cursor: pointer;
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.direction-item:hover {
+  background: #1e293b;
+}
+
+.direction-item input {
+  width: 18px;
+  height: 18px;
+  accent-color: #22c55e;
+  cursor: pointer;
+}
+
+.direction-item label {
+  cursor: pointer;
+  user-select: none;
+}
