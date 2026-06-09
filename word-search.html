@@ -38,14 +38,39 @@
 
     <div>
       <label>Directions</label>
-      <select id="directions-select" multiple>
-        <option value="H">Horizontal</option>
-        <option value="HR">Horizontal Reversed</option>
-        <option value="V">Vertical</option>
-        <option value="VR">Vertical Reversed</option>
-        <option value="D">Diagonal</option>
-        <option value="DR">Diagonal Reversed</option>
-      </select>
+      <div id="directions-box" class="direction-box">
+    
+        <div class="direction-item">
+          <input type="checkbox" value="H" id="dir-h">
+          <label for="dir-h">Horizontal</label>
+        </div>
+    
+        <div class="direction-item">
+          <input type="checkbox" value="HR" id="dir-hr">
+          <label for="dir-hr">Horizontal Reversed</label>
+        </div>
+    
+        <div class="direction-item">
+          <input type="checkbox" value="V" id="dir-v">
+          <label for="dir-v">Vertical</label>
+        </div>
+    
+        <div class="direction-item">
+          <input type="checkbox" value="VR" id="dir-vr">
+          <label for="dir-vr">Vertical Reversed</label>
+        </div>
+    
+        <div class="direction-item">
+          <input type="checkbox" value="D" id="dir-d">
+          <label for="dir-d">Diagonal</label>
+        </div>
+    
+        <div class="direction-item">
+          <input type="checkbox" value="DR" id="dir-dr">
+          <label for="dir-dr">Diagonal Reversed</label>
+        </div>
+    
+      </div>
     </div>
 
   </div>
@@ -97,7 +122,8 @@ function getWords() {
 }
 
 function getDirections() {
-  return Array.from(directionsSelect.selectedOptions).map(o => o.value);
+  return Array.from(document.querySelectorAll('#directions-box input:checked'))
+    .map(cb => cb.value);
 }
 
 function createEmptyGrid(n) {
